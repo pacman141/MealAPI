@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\IngredientRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -31,6 +33,24 @@ class Ingredient
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    /**
+     * @var Collection<int, RecipeIngredient>
+     */
+    #[ORM\OneToMany(targetEntity: RecipeIngredient::class, mappedBy: 'ingredient', orphanRemoval: true)]
+    private Collection $recipeIngredients;
+
+    /**
+     * @var Collection<int, IngredientShop>
+     */
+    #[ORM\OneToMany(targetEntity: IngredientShop::class, mappedBy: 'ingredient', orphanRemoval: true)]
+    private Collection $ingredientShops;
+
+    public function __construct()
+    {
+        $this->recipeIngredients = new ArrayCollection();
+        $this->ingredientShops = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -105,6 +125,66 @@ class Ingredient
     public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RecipeIngredient>
+     */
+    public function getRecipeIngredients(): Collection
+    {
+        return $this->recipeIngredients;
+    }
+
+    public function addRecipeIngredient(RecipeIngredient $recipeIngredient): static
+    {
+        if (!$this->recipeIngredients->contains($recipeIngredient)) {
+            $this->recipeIngredients->add($recipeIngredient);
+            $recipeIngredient->setIngredient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecipeIngredient(RecipeIngredient $recipeIngredient): static
+    {
+        if ($this->recipeIngredients->removeElement($recipeIngredient)) {
+            // set the owning side to null (unless already changed)
+            if ($recipeIngredient->getIngredient() === $this) {
+                $recipeIngredient->setIngredient(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, IngredientShop>
+     */
+    public function getIngredientShops(): Collection
+    {
+        return $this->ingredientShops;
+    }
+
+    public function addIngredientShop(IngredientShop $ingredientShop): static
+    {
+        if (!$this->ingredientShops->contains($ingredientShop)) {
+            $this->ingredientShops->add($ingredientShop);
+            $ingredientShop->setIngredient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIngredientShop(IngredientShop $ingredientShop): static
+    {
+        if ($this->ingredientShops->removeElement($ingredientShop)) {
+            // set the owning side to null (unless already changed)
+            if ($ingredientShop->getIngredient() === $this) {
+                $ingredientShop->setIngredient(null);
+            }
+        }
 
         return $this;
     }
