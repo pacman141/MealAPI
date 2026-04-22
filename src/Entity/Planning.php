@@ -4,14 +4,13 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\PlanningRepository;
-use BcMath\Number;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PlanningRepository::class)]
-#[ApiResource]
+#[ApiResource()]
 class Planning
 {
     #[ORM\Id]
@@ -19,28 +18,33 @@ class Planning
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['user:read'])]
     #[ORM\Column]
     private ?int $weekNumber = null;
 
+    #[Groups(['user:read'])]
     #[ORM\Column]
     private ?int $year = null;
 
-    /**
-     * @var Collection<int, PlanningMeal>
-     */
-    #[ORM\OneToMany(targetEntity: PlanningMeal::class, mappedBy: 'planning')]
-    private Collection $planningMeals;
+    #[ORM\ManyToOne(inversedBy: 'planning')]
+    private ?User $user = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     /**
-     * @var Collection<int, ShoppingListItem>
+     * @var Collection<int, PlanningRecipe>
      */
-    #[ORM\OneToMany(targetEntity: ShoppingListItem::class, mappedBy: 'planning')]
-    private Collection $shoppingListItems;
+    #[Groups(['user:read'])]
+    #[ORM\OneToMany(targetEntity: PlanningRecipe::class, mappedBy: 'planning')]
+    private Collection $planningRecipes;
 
     public function __construct()
     {
-        $this->planningMeals = new ArrayCollection();
-        $this->shoppingListItems = new ArrayCollection();
+        $this->planningRecipes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -72,60 +76,66 @@ class Planning
         return $this;
     }
 
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
     /**
-     * @return Collection<int, PlanningMeal>
+     * @return Collection<int, PlanningRecipe>
      */
-    public function getPlanningMeals(): Collection
+    public function getPlanningRecipes(): Collection
     {
-        return $this->planningMeals;
+        return $this->planningRecipes;
     }
 
-    public function addPlanningMeal(PlanningMeal $planningMeal): static
+    public function addPlanningRecipe(PlanningRecipe $planningRecipe): static
     {
-        if (!$this->planningMeals->contains($planningMeal)) {
-            $this->planningMeals->add($planningMeal);
-            $planningMeal->setPlanning($this);
+        if (!$this->planningRecipes->contains($planningRecipe)) {
+            $this->planningRecipes->add($planningRecipe);
+            $planningRecipe->setPlanning($this);
         }
 
         return $this;
     }
 
-    public function removePlanningMeal(PlanningMeal $planningMeal): static
+    public function removePlanningRecipe(PlanningRecipe $planningRecipe): static
     {
-        if ($this->planningMeals->removeElement($planningMeal)) {
+        if ($this->planningRecipes->removeElement($planningRecipe)) {
             // set the owning side to null (unless already changed)
-            if ($planningMeal->getPlanning() === $this) {
-                $planningMeal->setPlanning(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ShoppingListItem>
-     */
-    public function getShoppingListItems(): Collection
-    {
-        return $this->shoppingListItems;
-    }
-
-    public function addShoppingListItem(ShoppingListItem $shoppingListItem): static
-    {
-        if (!$this->shoppingListItems->contains($shoppingListItem)) {
-            $this->shoppingListItems->add($shoppingListItem);
-            $shoppingListItem->setPlanning($this);
-        }
-
-        return $this;
-    }
-
-    public function removeShoppingListItem(ShoppingListItem $shoppingListItem): static
-    {
-        if ($this->shoppingListItems->removeElement($shoppingListItem)) {
-            // set the owning side to null (unless already changed)
-            if ($shoppingListItem->getPlanning() === $this) {
-                $shoppingListItem->setPlanning(null);
+            if ($planningRecipe->getPlanning() === $this) {
+                $planningRecipe->setPlanning(null);
             }
         }
 

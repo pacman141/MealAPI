@@ -3,27 +3,30 @@
 namespace App\Entity;
 
 use App\Enum\TimeOfDay;
-use App\Repository\PlanningMealRepository;
+use App\Repository\PlanningRecipeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
-#[ORM\Entity(repositoryClass: PlanningMealRepository::class)]
-class PlanningMeal
+#[ORM\Entity(repositoryClass: PlanningRecipeRepository::class)]
+class PlanningRecipe
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['user:read'])]
     #[ORM\Column(enumType: TimeOfDay::class)]
     private ?TimeOfDay $timeOfDay = null;
 
-    #[ORM\ManyToOne(inversedBy: 'planningMeals')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(inversedBy: 'planningRecipes')]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Planning $planning = null;
 
-    #[ORM\ManyToOne(inversedBy: 'planningMeals')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Meal $meal = null;
+    #[Groups(['user:read'])]
+    #[ORM\ManyToOne(inversedBy: 'planningRecipes')]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
+    private ?Recipe $recipe = null;
 
     public function getId(): ?int
     {
@@ -54,14 +57,14 @@ class PlanningMeal
         return $this;
     }
 
-    public function getMeal(): ?Meal
+    public function getRecipe(): ?Recipe
     {
-        return $this->meal;
+        return $this->recipe;
     }
 
-    public function setMeal(?Meal $meal): static
+    public function setRecipe(?Recipe $recipe): static
     {
-        $this->meal = $meal;
+        $this->recipe = $recipe;
 
         return $this;
     }

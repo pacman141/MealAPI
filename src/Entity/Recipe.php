@@ -2,16 +2,15 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use App\Enum\RecipeType;
+use App\Enum\CourseType;
 use App\Repository\RecipeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: RecipeRepository::class)]
-#[ApiResource]
 class Recipe
 {
     #[ORM\Id]
@@ -19,43 +18,28 @@ class Recipe
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 100)]
+    #[Groups(['user:read'])]
+    #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $detail = null;
-
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $image = null;
+    private ?string $recipePicture = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
-    private ?string $price = null;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
 
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $updatedAt = null;
-
-    #[ORM\Column(enumType: RecipeType::class)]
-    private ?RecipeType $type = null;
+    #[ORM\Column(enumType: CourseType::class)]
+    private ?CourseType $courseType = null;
 
     /**
-     * @var Collection<int, RecipeIngredient>
+     * @var Collection<int, PlanningRecipe>
      */
-    #[ORM\OneToMany(targetEntity: RecipeIngredient::class, mappedBy: 'recipe')]
-    private Collection $recipeIngredients;
-
-    /**
-     * @var Collection<int, MealRecipe>
-     */
-    #[ORM\OneToMany(targetEntity: MealRecipe::class, mappedBy: 'recipe')]
-    private Collection $mealRecipes;
+    #[ORM\OneToMany(targetEntity: PlanningRecipe::class, mappedBy: 'recipe')]
+    private Collection $planningRecipes;
 
     public function __construct()
     {
-        $this->recipeIngredients = new ArrayCollection();
-        $this->mealRecipes = new ArrayCollection();
+        $this->planningRecipes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -75,132 +59,66 @@ class Recipe
         return $this;
     }
 
-    public function getDetail(): ?string
+    public function getRecipePicture(): ?string
     {
-        return $this->detail;
+        return $this->recipePicture;
     }
 
-    public function setDetail(string $detail): static
+    public function setRecipePicture(?string $recipePicture): static
     {
-        $this->detail = $detail;
+        $this->recipePicture = $recipePicture;
 
         return $this;
     }
 
-    public function getImage(): ?string
+    public function getDescription(): ?string
     {
-        return $this->image;
+        return $this->description;
     }
 
-    public function setImage(?string $image): static
+    public function setDescription(?string $description): static
     {
-        $this->image = $image;
+        $this->description = $description;
 
         return $this;
     }
 
-    public function getPrice(): ?string
+    public function getCourseType(): ?CourseType
     {
-        return $this->price;
+        return $this->courseType;
     }
 
-    public function setPrice(?string $price): static
+    public function setCourseType(CourseType $courseType): static
     {
-        $this->price = $price;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdatedAt(): ?\DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
-    public function getType(): ?RecipeType
-    {
-        return $this->type;
-    }
-
-    public function setType(RecipeType $type): static
-    {
-        $this->type = $type;
+        $this->courseType = $courseType;
 
         return $this;
     }
 
     /**
-     * @return Collection<int, RecipeIngredient>
+     * @return Collection<int, PlanningRecipe>
      */
-    public function getRecipeIngredients(): Collection
+    public function getPlanningRecipes(): Collection
     {
-        return $this->recipeIngredients;
+        return $this->planningRecipes;
     }
 
-    public function addRecipeIngredient(RecipeIngredient $recipeIngredient): static
+    public function addPlanningRecipe(PlanningRecipe $planningRecipe): static
     {
-        if (!$this->recipeIngredients->contains($recipeIngredient)) {
-            $this->recipeIngredients->add($recipeIngredient);
-            $recipeIngredient->setRecipe($this);
+        if (!$this->planningRecipes->contains($planningRecipe)) {
+            $this->planningRecipes->add($planningRecipe);
+            $planningRecipe->setRecipe($this);
         }
 
         return $this;
     }
 
-    public function removeRecipeIngredient(RecipeIngredient $recipeIngredient): static
+    public function removePlanningRecipe(PlanningRecipe $planningRecipe): static
     {
-        if ($this->recipeIngredients->removeElement($recipeIngredient)) {
+        if ($this->planningRecipes->removeElement($planningRecipe)) {
             // set the owning side to null (unless already changed)
-            if ($recipeIngredient->getRecipe() === $this) {
-                $recipeIngredient->setRecipe(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, MealRecipe>
-     */
-    public function getMealRecipes(): Collection
-    {
-        return $this->mealRecipes;
-    }
-
-    public function addMealRecipe(MealRecipe $mealRecipe): static
-    {
-        if (!$this->mealRecipes->contains($mealRecipe)) {
-            $this->mealRecipes->add($mealRecipe);
-            $mealRecipe->setRecipe($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMealRecipe(MealRecipe $mealRecipe): static
-    {
-        if ($this->mealRecipes->removeElement($mealRecipe)) {
-            // set the owning side to null (unless already changed)
-            if ($mealRecipe->getRecipe() === $this) {
-                $mealRecipe->setRecipe(null);
+            if ($planningRecipe->getRecipe() === $this) {
+                $planningRecipe->setRecipe(null);
             }
         }
 

@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\MealRecipe;
+use App\Entity\PlanningRecipe;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<MealRecipe>
+ * @extends ServiceEntityRepository<PlanningRecipe>
  */
-class MealRecipeRepository extends ServiceEntityRepository
+class PlanningRecipeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, MealRecipe::class);
+        parent::__construct($registry, PlanningRecipe::class);
     }
 
     //    /**
-    //     * @return MealRecipe[] Returns an array of MealRecipe objects
+    //     * @return PlanningRecipe[] Returns an array of PlanningRecipe objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('m')
-    //            ->andWhere('m.exampleField = :val')
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('m.id', 'ASC')
+    //            ->orderBy('p.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?MealRecipe
+    //    public function findOneBySomeField($value): ?PlanningRecipe
     //    {
-    //        return $this->createQueryBuilder('m')
-    //            ->andWhere('m.exampleField = :val')
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

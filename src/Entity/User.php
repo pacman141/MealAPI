@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,9 +10,18 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\ApiResource;
+use Symfony\Component\Serializer\Attribute\Groups;
+
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ApiResource]
+#[GetCollection()]
+#[Get(
+    normalizationContext: ['groups' => ['user:read']],
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -21,9 +29,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[Groups(['user:read'])]
+    #[ORM\Column(length: 180)]
     private ?string $email = null;
-
+    
     /**
      * @var list<string> The user roles
      */
@@ -34,42 +43,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
-    private ?string $password;
+    private ?string $password = null;
 
-    #[ORM\Column(length: 100)]
+    #[Groups(['user:read'])]
+    #[ORM\Column(length: 50, nullable: true)]
     private ?string $firstName = null;
 
-    #[ORM\Column(length: 100)]
+    #[Groups(['user:read'])]
+    #[ORM\Column(length: 50, nullable: true)]
     private ?string $lastName = null;
 
-    #[ORM\Column(length: 100)]
-    private ?string $username = null;
+    #[Groups(['user:read'])]
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $userName = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $image = null;
-
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $dateOfBirth = null;
-
+    #[Groups(['user:read'])]
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[Groups(['user:read'])]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $dateOfBirth = null;
+
+    #[Groups(['user:read'])]
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $profilePicture = null;
+
     /**
-     * @var Collection<int, ShoppingListItem>
+     * @var Collection<int, Planning>
      */
-    #[ORM\OneToMany(
-        mappedBy: 'user',
-        targetEntity: ShoppingListItem::class,
-        orphanRemoval: true
-    )]
-    private Collection $shoppingListItems;
+    #[Groups(['user:read'])]
+    #[ORM\OneToMany(targetEntity: Planning::class, mappedBy: 'user')]
+    private Collection $planning;
 
     public function __construct()
     {
-        $this->shoppingListItems = new ArrayCollection();
+        $this->planning = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -158,7 +170,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->firstName;
     }
 
-    public function setFirstName(string $firstName): static
+    public function setFirstName(?string $firstName): static
     {
         $this->firstName = $firstName;
 
@@ -177,38 +189,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getUsername(): ?string
+    public function getUserName(): ?string
     {
-        return $this->username;
+        return $this->userName;
     }
 
-    public function setUsername(string $username): static
+    public function setUserName(?string $userName): static
     {
-        $this->username = $username;
-
-        return $this;
-    }
-
-    public function getImage(): ?string
-    {
-        return $this->image;
-    }
-
-    public function setImage(string $image): static
-    {
-        $this->image = $image;
-
-        return $this;
-    }
-
-    public function getDateOfBirth(): ?\DateTime
-    {
-        return $this->dateOfBirth;
-    }
-
-    public function setDateOfBirth(\DateTime $dateOfBirth): static
-    {
-        $this->dateOfBirth = $dateOfBirth;
+        $this->userName = $userName;
 
         return $this;
     }
@@ -237,30 +225,54 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, ShoppingListItem>
-     */
-    public function getShoppingListItems(): Collection
+    public function getDateOfBirth(): ?\DateTime
     {
-        return $this->shoppingListItems;
+        return $this->dateOfBirth;
     }
 
-    public function addShoppingListItem(ShoppingListItem $shoppingListItem): static
+    public function setDateOfBirth(?\DateTime $dateOfBirth): static
     {
-        if (!$this->shoppingListItems->contains($shoppingListItem)) {
-            $this->shoppingListItems->add($shoppingListItem);
-            $shoppingListItem->setUser($this);
+        $this->dateOfBirth = $dateOfBirth;
+
+        return $this;
+    }
+
+    public function getProfilePicture(): ?string
+    {
+        return $this->profilePicture;
+    }
+
+    public function setProfilePicture(?string $profilePicture): static
+    {
+        $this->profilePicture = $profilePicture;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Planning>
+     */
+    public function getPlanning(): Collection
+    {
+        return $this->planning;
+    }
+
+    public function addPlanning(Planning $planning): static
+    {
+        if (!$this->planning->contains($planning)) {
+            $this->planning->add($planning);
+            $planning->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeShoppingListItem(ShoppingListItem $shoppingListItem): static
+    public function removePlanning(Planning $planning): static
     {
-        if ($this->shoppingListItems->removeElement($shoppingListItem)) {
+        if ($this->planning->removeElement($planning)) {
             // set the owning side to null (unless already changed)
-            if ($shoppingListItem->getUser() === $this) {
-                $shoppingListItem->setUser(null);
+            if ($planning->getUser() === $this) {
+                $planning->setUser(null);
             }
         }
 
