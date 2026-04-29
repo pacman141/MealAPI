@@ -18,7 +18,7 @@ class Recipe
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 

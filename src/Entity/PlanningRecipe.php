@@ -15,7 +15,7 @@ class PlanningRecipe
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\Column(enumType: TimeOfDay::class)]
     private ?TimeOfDay $timeOfDay = null;
 
@@ -23,7 +23,7 @@ class PlanningRecipe
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Planning $planning = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\ManyToOne(inversedBy: 'planningRecipes')]
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Recipe $recipe = null;

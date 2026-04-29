@@ -2,15 +2,23 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\PlanningRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use ApiPlatform\Metadata\QueryParameter;
 
 #[ORM\Entity(repositoryClass: PlanningRepository::class)]
 #[ApiResource()]
+#[GetCollection(
+    normalizationContext: ['groups' => ['planning:read:collection']],
+)]
+#[ApiFilter(SearchFilter::class, properties: ['user' => 'exact'])]
 class Planning
 {
     #[ORM\Id]
@@ -18,11 +26,11 @@ class Planning
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\Column]
     private ?int $weekNumber = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\Column]
     private ?int $year = null;
 
@@ -38,7 +46,7 @@ class Planning
     /**
      * @var Collection<int, PlanningRecipe>
      */
-    #[Groups(['user:read'])]
+    #[Groups(['planning:read:collection'])]
     #[ORM\OneToMany(targetEntity: PlanningRecipe::class, mappedBy: 'planning')]
     private Collection $planningRecipes;
 

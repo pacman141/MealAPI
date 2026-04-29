@@ -13,26 +13,47 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use App\State\MeProcessor;
+use App\State\MeProvider;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[ApiResource]
-#[GetCollection()]
-#[Get(
-    normalizationContext: ['groups' => ['user:read']],
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Get(
+            uriTemplate: '/me',
+            provider: MeProvider::class,
+            security: "is_granted('ROLE_USER')",
+            normalizationContext: ['groups' => ['user:read:item']],
+        ),
+        new Post(),
+        new Patch(
+            uriTemplate: '/update_me',
+            processor: MeProcessor::class,
+            security: "is_granted('ROLE_USER')",
+            denormalizationContext: ['groups' => ['user:write:item']]
+        ),
+    ],
+    normalizationContext: ['groups' => ['user:read:item']],
 )]
+
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    #[Groups(['user:read:item'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['user:read:item', 'user:write:item'])]
     #[ORM\Column(length: 180)]
     private ?string $email = null;
-    
+
     /**
      * @var list<string> The user roles
      */
@@ -45,37 +66,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['user:read:item', 'user:write:item'])]
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $firstName = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['user:read:item', 'user:write:item'])]
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $lastName = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['user:read:item', 'user:write:item'])]
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $userName = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['user:read:item', 'user:write:item'])]
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['user:read:item', 'user:write:item'])]
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $dateOfBirth = null;
 
-    #[Groups(['user:read'])]
+    #[Groups(['user:read:item', 'user:write:item'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $profilePicture = null;
 
     /**
      * @var Collection<int, Planning>
      */
-    #[Groups(['user:read'])]
     #[ORM\OneToMany(targetEntity: Planning::class, mappedBy: 'user')]
     private Collection $planning;
 
@@ -154,7 +174,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
 
         return $data;
     }
@@ -182,7 +202,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->lastName;
     }
 
-    public function setLastName(string $lastName): static
+    public function setLastName(?string $lastName): static
     {
         $this->lastName = $lastName;
 
