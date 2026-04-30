@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\DayOfWeek;
 use App\Enum\TimeOfDay;
 use App\Repository\PlanningRecipeRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,6 +28,9 @@ class PlanningRecipe
     #[ORM\ManyToOne(inversedBy: 'planningRecipes')]
     #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Recipe $recipe = null;
+
+    #[ORM\Column(enumType: DayOfWeek::class)]
+    private ?DayOfWeek $dayOfWeek = null;
 
     public function getId(): ?int
     {
@@ -65,6 +69,18 @@ class PlanningRecipe
     public function setRecipe(?Recipe $recipe): static
     {
         $this->recipe = $recipe;
+
+        return $this;
+    }
+
+    public function getDayOfWeek(): ?DayOfWeek
+    {
+        return $this->dayOfWeek;
+    }
+
+    public function setDayOfWeek(DayOfWeek $dayOfWeek): static
+    {
+        $this->dayOfWeek = $dayOfWeek;
 
         return $this;
     }

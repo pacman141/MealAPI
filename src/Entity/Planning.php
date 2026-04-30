@@ -14,9 +14,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use ApiPlatform\Metadata\QueryParameter;
 
 #[ORM\Entity(repositoryClass: PlanningRepository::class)]
-#[ApiResource()]
-#[GetCollection(
-    normalizationContext: ['groups' => ['planning:read:collection']],
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            //security: "is_granted('ROLE_USER')",
+            normalizationContext: ['groups' => ['planning:read:collection']], 
+        ),
+    ],
+
 )]
 #[ApiFilter(SearchFilter::class, properties: ['user' => 'exact'])]
 class Planning
